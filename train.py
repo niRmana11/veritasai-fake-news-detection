@@ -3,13 +3,16 @@ import pickle
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, classification_report
+
+
 
 # load datasets
 old = pd.read_csv("data/news.csv", low_memory=False)
 latest = pd.read_csv("data/latest_news.csv")
+latest_v2 = pd.read_csv("data/latest_news_v2.csv")
 
-data = pd.concat([old, latest], ignore_index=True)
+data = pd.concat([old, latest, latest_v2], ignore_index=True)
 
 data = data[["title", "text", "label"]]
 data['label'] = data['label'].astype(str).str.upper().str.strip()
@@ -30,7 +33,7 @@ data["content"] = data["title"] + " " + data["text"]
 data = data.drop_duplicates(subset=["content"])
 data = data.sample(frac=1, random_state=42)
 
-print(data['label'].value_counts())
+
 
 
 X = data["content"]
@@ -60,6 +63,13 @@ model.fit(X_train_vec, y_train)
 
 print("Train:", accuracy_score(y_train, model.predict(X_train_vec)))
 print("Test:", accuracy_score(y_test, model.predict(X_test_vec)))
+
+y_pred = model.predict(X_test_vec)
+print("\nClassification Report:\n", classification_report(y_test, y_pred))
+
+
+print("Final dataset size:", data.shape[0])
+print(data["label"].value_counts())
 
 # save
 with open("models/veritasai_model.pkl", "wb") as f:
